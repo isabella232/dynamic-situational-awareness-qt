@@ -72,7 +72,7 @@ FeatureLayerAlertTarget::~FeatureLayerAlertTarget()
 QList<Geometry> FeatureLayerAlertTarget::targetGeometries(const Envelope& targetArea) const
 {
   // if the quad-tree has been built use it to determine the candidate geometry
-  if (m_quadtree)
+  if (m_quadtree && m_quadtree->ready())
     return m_quadtree->candidateIntersections(targetArea);
 
   // if there is no quad-tree just return the cache of geoemtry

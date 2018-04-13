@@ -58,7 +58,7 @@ GraphicsOverlayAlertTarget::GraphicsOverlayAlertTarget(GraphicsOverlay* graphics
   {
     Graphic* graphic = m_graphicsOverlay->graphics()->at(index);
     setupGraphicConnections(graphic);
-    if (m_quadtree)
+    if (m_quadtree && m_quadtree->ready())
       m_quadtree->appendGeoElment(graphic);
     else
       rebuildQuadtree();
@@ -86,7 +86,7 @@ GraphicsOverlayAlertTarget::~GraphicsOverlayAlertTarget()
 QList<Geometry> GraphicsOverlayAlertTarget::targetGeometries(const Envelope& targetArea) const
 {
   // if the quadtree has been built, use  it to return the set of candidate geometries
-  if (m_quadtree)
+  if (m_quadtree && m_quadtree->ready())
     return m_quadtree->candidateIntersections(targetArea);
 
   // otherwise, return all of the geometry in the overlay

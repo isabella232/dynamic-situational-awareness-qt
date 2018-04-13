@@ -14,6 +14,7 @@
 #define GEOMETRYQUADTREE_H
 
 // Qt headers
+#include <QFutureWatcher>
 #include <QHash>
 #include <QList>
 #include <QObject>
@@ -49,6 +50,8 @@ public:
   QList<Esri::ArcGISRuntime::Geometry> candidateIntersections(const Esri::ArcGISRuntime::Envelope& extent) const;
   QList<Esri::ArcGISRuntime::Geometry> candidateIntersections(const Esri::ArcGISRuntime::Point& location) const;
 
+  bool ready() const;
+
 signals:
   void treeChanged();
 
@@ -61,6 +64,7 @@ private:
 
   int m_maxLevels;
   std::unique_ptr<QuadTree> m_tree;
+  QFutureWatcher<QuadTree*>* m_treeWatcher;
   QHash<int, Esri::ArcGISRuntime::GeoElement*> m_elementStorage;
   int m_nextKey = 0;
 };

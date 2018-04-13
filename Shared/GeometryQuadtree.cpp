@@ -22,6 +22,8 @@
 #include "Point.h"
 
 // Qt headers
+#include <QtConcurrent/QtConcurrentRun>
+#include <QFuture>
 #include <QSet>
 
 using namespace Esri::ArcGISRuntime;
@@ -84,8 +86,15 @@ GeometryQuadtree::GeometryQuadtree(const Envelope& extent,
                                    int maxLevels,
                                    QObject* parent):
   QObject(parent),
-  m_maxLevels(maxLevels)
+  m_maxLevels(maxLevels),
+  m_treeWatcher(new QFutureWatcher<QuadTree*>(this))
 {
+  connect(m_treeWatcher, &QFutureWatcher<QuadTree*>::finished, this, [this]()
+  {
+    m_tree.reset(m_treeWatcher->result());
+    emit treeChanged();
+  });
+
   // connect to the geometryChanged signal of individual GeoElements
   for (const auto& element : geoElements)
     handleNewGeoElement(element);
@@ -188,34 +197,51 @@ QList<Geometry> GeometryQuadtree::candidateIntersections(const Point& location) 
   return results;
 }
 
+bool GeometryQuadtree::ready() const
+{
+  return m_tree != nullptr;
+}
+
 /*!
   \internal
  */
 void GeometryQuadtree::buildTree(const Envelope& extent)
 {
+  if (m_treeWatcher->isRunning())
+    return; // TODO - really we should cancel the previous operation and try and build a new tree
+
+  if (m_tree)
+    m_tree.release();
+
+  auto buildTreeFunc = [this](const Envelope& extentWgs84)
+  {
+    // build the (currently empty) tree to the desired depth
+    QuadTree* tree = new QuadTree(0, extentWgs84.xMin(), extentWgs84.xMax(), extentWgs84.yMin(), extentWgs84.yMax());
+
+    // assign the geometry of each element to the tree, along with its id in the lookup
+    auto it = m_elementStorage.cbegin();
+    auto itEnd = m_elementStorage.cend();
+    for (; it != itEnd; ++it)
+    {
+      GeoElement* element = it.value();
+      if (!element)
+        continue;
+
+      const Geometry wgs84 = GeometryEngine::project(element->geometry(), SpatialReference::wgs84());
+      tree->assign(wgs84.extent(), it.key(), m_maxLevels);
+    }
+
+    // remove any nodes from the tree which contain no geometry
+    tree->prune();
+
+    return tree;
+  };
+
   // ensure the tree's extent is in WGS84
   const Envelope extentWgs84 = GeometryEngine::project(extent, SpatialReference::wgs84());
 
-  // build the (currently empty) tree to the desired depth
-  m_tree.reset(new QuadTree(0, extentWgs84.xMin(), extentWgs84.xMax(), extentWgs84.yMin(), extentWgs84.yMax()));
-
-  // assign the geometry of each element to the tree, along with its id in the lookup
-  auto it = m_elementStorage.cbegin();
-  auto itEnd = m_elementStorage.cend();
-  for (; it != itEnd; ++it)
-  {
-    GeoElement* element = it.value();
-    if (!element)
-      continue;
-
-    const Geometry wgs84 = GeometryEngine::project(element->geometry(), SpatialReference::wgs84());
-    m_tree->assign(wgs84.extent(), it.key(), m_maxLevels);
-  }
-
-  // remove any nodes from the tree which contain no geometry
-  m_tree->prune();
-
-  emit treeChanged();
+  // start the operation
+  m_treeWatcher->setFuture(QtConcurrent::run(buildTreeFunc, extentWgs84));
 }
 
 /*!
