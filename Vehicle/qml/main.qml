@@ -185,7 +185,7 @@ Vehicle {
             highlightColor : Material.accent
             textColor: Material.foreground
             backgroundColor: Material.background
-            fontSize: DsaStyles.toolFontPixelSize
+            fontSize: DsaStyles.toolFontPixelSize * 1.5
             fontFamily: DsaStyles.fontFamily
             backgroundOpacity: hudOpacity
             radius: hudRadius
