@@ -33,8 +33,8 @@ Item {
 
     Rectangle {
         anchors.centerIn: parent
-        width: 300 * scaleFactor
-        height: 335 * scaleFactor
+        width: 400 * scaleFactor
+        height: 400 * scaleFactor
         color: Material.primary
         radius: 5 * scaleFactor
         clip: true
@@ -85,7 +85,7 @@ Item {
                 text: "Version: %1".arg(Qt.application.version)
                 color: Material.foreground
                 font {
-                    pixelSize: 12 * scaleFactor
+                    pixelSize: 16 * scaleFactor
                     family: DsaStyles.fontFamily
                 }
             }
@@ -98,7 +98,7 @@ Item {
                 text: "This example application is built to demonstrate how situational awareness applications can be built with ArcGIS Runtime. It incorporates common workflows such as adding local data sources, sending messages over a secured network, visualizing military symbols, and creating and viewing alerts from those that are in the field."
                 color: Material.foreground
                 font {
-                    pixelSize: 12 * scaleFactor
+                    pixelSize: 16 * scaleFactor
                     family: DsaStyles.fontFamily
                 }
             }
@@ -108,7 +108,7 @@ Item {
                 text: "Built with ArcGIS Runtime SDK 100.4 for Qt"
                 color: Material.foreground
                 font {
-                    pixelSize: 12 * scaleFactor
+                    pixelSize: 16 * scaleFactor
                     family: DsaStyles.fontFamily
                 }
             }
@@ -122,7 +122,7 @@ Item {
             }
             text: "Close"
             font {
-                pixelSize: 12 * scaleFactor
+                pixelSize: 16 * scaleFactor
                 family: DsaStyles.fontFamily
             }
             onClicked: aboutRoot.visible = false;
